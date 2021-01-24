@@ -13,7 +13,7 @@ exports.calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
      })
      const currentWeather = weather.find((w) => w.name === weatherNow)
      vehicleSpeeds = vehicleSpeeds.filter((vehicle) => (currentWeather.vehicles.includes(vehicle.name)))
-     this.calculateTotalTime(vehicleSpeeds, weatherNow, (timeOnTraffic) => {
+     calculateTotalTime(vehicleSpeeds, weatherNow, (timeOnTraffic) => {
          callback(timeOnTraffic)
      })
 }
@@ -24,7 +24,7 @@ const countCraters = (weatherNow, orbitCraters) => {
     return totalCraters
 }
 
-exports.calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
+const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
     let timeTaken = vehiclesWithOrbitSpeed.map((vehicle) => {
         let timeForVehicle = {
             name: vehicle.name,
@@ -35,5 +35,33 @@ exports.calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
         }
         return timeForVehicle
     })
-    callback(timeTaken);
+    sortEfficientTime(timeTaken, (leastTimeTaken) => {
+        callback(leastTimeTaken)
+    });
+}
+
+const sortEfficientTime = (timeTaken, callback) => {
+    let leastTimeTaken = {
+        name: '', oribitTime: 0, orbitName: '0'
+    }
+    leastTimeTaken.name = timeTaken[0].name
+    if(timeTaken[0].timeOrbit1 < timeTaken[0].timeOrbit2 || timeTaken[0].timeOrbit1 == timeTaken[0].timeOrbit2){
+        leastTimeTaken.orbitName = 'ORBIT_1'
+        leastTimeTaken.oribitTime = timeTaken[0].timeOrbit1
+    } else {
+        leastTimeTaken.orbitName = 'ORBIT_2'
+        leastTimeTaken.oribitTime = timeTaken[0].timeOrbit2
+    }
+    timeTaken.forEach((vehicleData) => {
+        if(vehicleData.timeOrbit1 < leastTimeTaken.oribitTime){
+            leastTimeTaken.name = vehicleData.name
+            leastTimeTaken.orbitName = 'ORBIT_1'
+            leastTimeTaken.oribitTime = vehicleData.timeOrbit1
+        } else if(vehicleData.timeOrbit2 < leastTimeTaken.oribitTime){
+            leastTimeTaken.name = vehicleData.name
+            leastTimeTaken.orbitName = 'ORBIT_2'
+            leastTimeTaken.oribitTime = vehicleData.timeOrbit2
+        }
+    })
+    callback(leastTimeTaken);
 }

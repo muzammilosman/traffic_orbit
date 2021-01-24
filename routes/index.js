@@ -4,15 +4,17 @@ const fs = require('fs');
 var router = express.Router();
 const vehicles = require('../config/keys').vehicles
 const {calculateMaxSpeed} = require('../controllers/travelTime')
+const {readTextFile} = require('../controllers/readFile')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  calculateMaxSpeed('WINDY', 14, 20, (responseVehicles) => {
-    console.log("responded:",responseVehicles)
+  readTextFile(process.argv[2], (trafficParams) => {
+    const {weatherNow, maxSpeedOrbit1, maxSpeedOrbit2} = trafficParams
+    calculateMaxSpeed(weatherNow, maxSpeedOrbit1, maxSpeedOrbit2, (bestTransport) => {
+      console.log(bestTransport.name + ' ' + bestTransport.orbitName)
+      res.send(bestTransport.name + ' ' + bestTransport.orbitName);
+    })
   })
-  fs.readFile(process.cwd() + '/views/index.html', 'utf8', (err, text) => {
-    res.send(text);
-  });
 });
 
 module.exports = router;
