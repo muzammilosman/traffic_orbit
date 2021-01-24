@@ -28,10 +28,10 @@ const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
     let timeTaken = vehiclesWithOrbitSpeed.map((vehicle) => {
         let timeForVehicle = {
             name: vehicle.name,
-            timeOrbit1: (orbits[0].distance / vehicle.maxSpeedOrbit1) 
-                        + (countCraters(weatherNow, orbits[0].craters) * vehicle.craterTime),
-            timeOrbit2: (orbits[1].distance / vehicle.maxSpeedOrbit1) 
-                        + (countCraters(weatherNow, orbits[1].craters) * vehicle.craterTime)
+            timeOrbit1: ((orbits[0].distance / vehicle.maxSpeedOrbit1) 
+                        + (countCraters(weatherNow, orbits[0].craters) * vehicle.craterTime)).toFixed(1),
+            timeOrbit2: ((orbits[1].distance / vehicle.maxSpeedOrbit1) 
+                        + (countCraters(weatherNow, orbits[1].craters) * vehicle.craterTime)).toFixed(1)
         }
         return timeForVehicle
     })
@@ -42,24 +42,24 @@ const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
 
 const sortEfficientTime = (timeTaken, callback) => {
     let leastTimeTaken = {
-        name: '', oribitTime: 0, orbitName: '0'
+        name: '', oribitTime: 0, orbitName: ''
     }
     leastTimeTaken.name = timeTaken[0].name
     if(timeTaken[0].timeOrbit1 < timeTaken[0].timeOrbit2 || timeTaken[0].timeOrbit1 == timeTaken[0].timeOrbit2){
-        leastTimeTaken.orbitName = 'ORBIT_1'
+        leastTimeTaken.orbitName = 'ORBIT1'
         leastTimeTaken.oribitTime = timeTaken[0].timeOrbit1
     } else {
-        leastTimeTaken.orbitName = 'ORBIT_2'
+        leastTimeTaken.orbitName = 'ORBIT2'
         leastTimeTaken.oribitTime = timeTaken[0].timeOrbit2
     }
     timeTaken.forEach((vehicleData) => {
         if(vehicleData.timeOrbit1 < leastTimeTaken.oribitTime){
             leastTimeTaken.name = vehicleData.name
-            leastTimeTaken.orbitName = 'ORBIT_1'
+            leastTimeTaken.orbitName = 'ORBIT1'
             leastTimeTaken.oribitTime = vehicleData.timeOrbit1
         } else if(vehicleData.timeOrbit2 < leastTimeTaken.oribitTime){
             leastTimeTaken.name = vehicleData.name
-            leastTimeTaken.orbitName = 'ORBIT_2'
+            leastTimeTaken.orbitName = 'ORBIT2'
             leastTimeTaken.oribitTime = vehicleData.timeOrbit2
         }
     })
