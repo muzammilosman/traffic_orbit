@@ -8,10 +8,10 @@ The dependencies are to be installed after cloning or unzipping the application,
 
 ```sh
 $ npm install
-$ node geektrust.js
+$ node geektrust.js input.txt
 ```
 
-The logic execution will be executed when opening ```localhost:3000``` in the browser. The output will be displayed in the required format in the **Browser window** as well as the **server console**.
+The output will be displayed in the required format in the **server console**.
 
 > **Note**: The application needs to be restarted if the input values in the input.txt file are changed.
 
@@ -28,7 +28,7 @@ SUNNY 12 10
 ```
 ### Output
 
-Open ```localhost:3000``` when the input values are set and the application is started, the output can be obtained in the **server console** or the **browser window**.
+When the input values are set and the application is started, the output can be obtained in the **server console**.
 
 #### Output format:
 

@@ -1,33 +1,18 @@
-var createError = require('http-errors');
 var express = require('express');
-var path = require('path');
-
-var indexRouter = require('./routes/index');
+const {readTextFile} = require('./controllers/readFile');
+const { calculateMaxSpeed } = require('./controllers/travelTime');
 
 var app = express();
-const PORT = 3000;
-
-app.set('views', path.join(__dirname, 'views'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
-
-app.use(function(req, res, next) {
-  next(createError(404));
-});
-
-app.use(function(err, req, res, next) {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-app.listen(PORT, function(err){ 
-  if (err) console.log(err); 
-  console.log("Server listening on PORT", PORT);
-}); 
+const fileName = process.argv[2]
+readTextFile(fileName, (trafficParams) => {
+  if(trafficParams){
+    const {weatherNow, maxSpeedOrbit1, maxSpeedOrbit2} = trafficParams
+    calculateMaxSpeed(weatherNow, maxSpeedOrbit1, maxSpeedOrbit2, (bestTransport) => {
+      console.log(bestTransport.name + ' ' + bestTransport.orbitName)
+    })
+  } else {
+    console.log("Enter a valid input text file in the command line. For ex: node geektrust.js input.txt")
+  }
+})
 
 module.exports = app;
