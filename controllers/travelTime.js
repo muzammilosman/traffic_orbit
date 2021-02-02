@@ -1,20 +1,22 @@
 
 var { orbits, vehicles, weather } = require('../config/keys')
 
-exports.calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
+const calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
      let vehicleSpeeds = vehicles.map((vehicle) => {
         let vehicleWithSpeeds = {
             name: vehicle.name,
             maxSpeedOrbit1: vehicle.speed > maxSpeed1 ? maxSpeed1 : vehicle.speed,
             maxSpeedOrbit2: vehicle.speed > maxSpeed2 ? maxSpeed2 : vehicle.speed,
-            craterTime: vehicle.craterTime
+            craterTime: vehicle.craterTime.toFixed(2)
         }
         return vehicleWithSpeeds;
      })
      const currentWeather = weather.find((w) => w.name === weatherNow)
      vehicleSpeeds = vehicleSpeeds.filter((vehicle) => (currentWeather.vehicles.includes(vehicle.name)))
-     calculateTotalTime(vehicleSpeeds, weatherNow, (timeOnTraffic) => {
-         callback(timeOnTraffic)
+     calculateTotalTime(vehicleSpeeds, weatherNow, (timeTaken) => {
+        sortEfficientTime(timeTaken, (leastTimeTaken) => {
+            callback(leastTimeTaken)
+        });
      })
 }
 
@@ -28,16 +30,14 @@ const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
     let timeTaken = vehiclesWithOrbitSpeed.map((vehicle) => {
         let timeForVehicle = {
             name: vehicle.name,
-            timeOrbit1: ((orbits[0].distance / vehicle.maxSpeedOrbit1) 
-                        + (countCraters(weatherNow, orbits[0].craters) * vehicle.craterTime)).toFixed(1),
-            timeOrbit2: ((orbits[1].distance / vehicle.maxSpeedOrbit1) 
-                        + (countCraters(weatherNow, orbits[1].craters) * vehicle.craterTime)).toFixed(1)
+            timeOrbit1: ((orbits[0].distance / vehicle.maxSpeedOrbit1)
+                        + (countCraters(weatherNow, orbits[0].craters) * vehicle.craterTime)).toFixed(2),
+            timeOrbit2: ((orbits[1].distance / vehicle.maxSpeedOrbit2) 
+                        + (countCraters(weatherNow, orbits[1].craters) * vehicle.craterTime)).toFixed(2)
         }
         return timeForVehicle
     })
-    sortEfficientTime(timeTaken, (leastTimeTaken) => {
-        callback(leastTimeTaken)
-    });
+    callback(timeTaken)
 }
 
 const sortEfficientTime = (timeTaken, callback) => {
@@ -64,4 +64,11 @@ const sortEfficientTime = (timeTaken, callback) => {
         }
     })
     callback(leastTimeTaken);
+}
+
+module.exports = {
+    calculateMaxSpeed,
+    countCraters,
+    calculateTotalTime,
+    sortEfficientTime
 }
