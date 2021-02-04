@@ -1,8 +1,10 @@
-
-var { orbits, vehicles, weather } = require('../config/keys')
+const { Vehicle } = require('../config/vehicle')
+const { Weather } = require('../config/weather')
+const { Orbit } = require('../config/orbits')
 
 const calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
-     let vehicleSpeeds = vehicles.map((vehicle) => {
+    const allVehicles = new Vehicle();
+    let vehicleSpeeds = allVehicles.getAllVehicles().map((vehicle) => {
         let vehicleWithSpeeds = {
             name: vehicle.name,
             maxSpeedOrbit1: vehicle.speed > maxSpeed1 ? maxSpeed1 : vehicle.speed,
@@ -11,57 +13,58 @@ const calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
         }
         return vehicleWithSpeeds;
      })
-     const currentWeather = weather.find((w) => w.name === weatherNow)
-     vehicleSpeeds = vehicleSpeeds.filter((vehicle) => (currentWeather.vehicles.includes(vehicle.name)))
+     const weatherModel = new Weather()
+     const currentWeather = weatherModel.getWeatherByName(weatherNow).name
+     vehicleSpeeds = vehicleSpeeds.filter((vehicle) =>
+         (weatherModel.checkVehicleInWeather(currentWeather, vehicle.name)))
      calculateTotalTime(vehicleSpeeds, weatherNow, (timeTaken) => {
-        sortEfficientTime(timeTaken, (leastTimeTaken) => {
-            callback(leastTimeTaken)
-        });
+         sortEfficientTime(timeTaken, (leastTimeTaken) => {
+             callback(leastTimeTaken)
+         });
      })
 }
 
 const countCraters = (weatherNow, orbitCraters) => {
-    const craterEffect = weather.find((w) => w.name === weatherNow).craterEffect;
+    const weathers = new Weather()
+    const craterEffect = weathers.getWeatherByName(weatherNow).craterEffect;
     const totalCraters = (craterEffect * orbitCraters) + orbitCraters;
     return totalCraters
 }
 
 const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
+    const orbitModel = new Orbit()
     let timeTaken = vehiclesWithOrbitSpeed.map((vehicle) => {
-        let timeForVehicle = {
-            name: vehicle.name,
-            timeOrbit1: ((orbits[0].distance / vehicle.maxSpeedOrbit1)
-                        + (countCraters(weatherNow, orbits[0].craters) * vehicle.craterTime)).toFixed(2),
-            timeOrbit2: ((orbits[1].distance / vehicle.maxSpeedOrbit2) 
-                        + (countCraters(weatherNow, orbits[1].craters) * vehicle.craterTime)).toFixed(2)
-        }
+        let timeForVehicle = { name: vehicle.name }
+        orbitModel.getAllOrbits().forEach((orbit, i) => {
+            timeForVehicle['timeOrbit' + (i+1)] = ((orbitModel.getOrbitDistance(i) / vehicle['maxSpeedOrbit' + (i+1)])
+                    + (countCraters(weatherNow, orbitModel.getOrbitCraters(i)) * vehicle.craterTime)).toFixed(2)
+        })
         return timeForVehicle
     })
     callback(timeTaken)
 }
 
 const sortEfficientTime = (timeTaken, callback) => {
+    const orbitModel = new Orbit();
     let leastTimeTaken = {
         name: '', oribitTime: 0, orbitName: ''
     }
     leastTimeTaken.name = timeTaken[0].name
     if(timeTaken[0].timeOrbit1 < timeTaken[0].timeOrbit2 || timeTaken[0].timeOrbit1 == timeTaken[0].timeOrbit2){
-        leastTimeTaken.orbitName = 'ORBIT1'
+        leastTimeTaken.orbitName = orbitModel.getOrbitName(0)
         leastTimeTaken.oribitTime = timeTaken[0].timeOrbit1
     } else {
-        leastTimeTaken.orbitName = 'ORBIT2'
+        leastTimeTaken.orbitName = orbitModel.getOrbitName(1)
         leastTimeTaken.oribitTime = timeTaken[0].timeOrbit2
     }
-    timeTaken.forEach((vehicleData) => {
-        if(vehicleData.timeOrbit1 < leastTimeTaken.oribitTime){
-            leastTimeTaken.name = vehicleData.name
-            leastTimeTaken.orbitName = 'ORBIT1'
-            leastTimeTaken.oribitTime = vehicleData.timeOrbit1
-        } else if(vehicleData.timeOrbit2 < leastTimeTaken.oribitTime){
-            leastTimeTaken.name = vehicleData.name
-            leastTimeTaken.orbitName = 'ORBIT2'
-            leastTimeTaken.oribitTime = vehicleData.timeOrbit2
-        }
+    timeTaken.forEach((vehicleData, i) => {
+        orbitModel.getAllOrbits().forEach((orbit, j) => {
+            if(vehicleData['timeOrbit' + (j+1)] < leastTimeTaken.oribitTime){
+                leastTimeTaken.name = vehicleData.name
+                leastTimeTaken.orbitName = orbit.name
+                leastTimeTaken.oribitTime = vehicleData['timeOrbit' + (j+1)]
+            }
+        })
     })
     callback(leastTimeTaken);
 }
