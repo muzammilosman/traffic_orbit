@@ -9,7 +9,7 @@ const calculateMaxSpeed = (weatherNow, maxSpeed1, maxSpeed2, callback) => {
             name: vehicle.name,
             maxSpeedOrbit1: vehicle.speed > maxSpeed1 ? maxSpeed1 : vehicle.speed,
             maxSpeedOrbit2: vehicle.speed > maxSpeed2 ? maxSpeed2 : vehicle.speed,
-            craterTime: vehicle.craterTime.toFixed(2)
+            craterTime: vehicle.craterTime
         }
         return vehicleWithSpeeds;
      })
@@ -36,8 +36,8 @@ const calculateTotalTime = (vehiclesWithOrbitSpeed, weatherNow, callback) => {
     let timeTaken = vehiclesWithOrbitSpeed.map((vehicle) => {
         let timeForVehicle = { name: vehicle.name }
         orbitModel.getAllOrbits().forEach((orbit, i) => {
-            timeForVehicle['timeOrbit' + (i+1)] = ((orbitModel.getOrbitDistance(i) / vehicle['maxSpeedOrbit' + (i+1)])
-                    + (countCraters(weatherNow, orbitModel.getOrbitCraters(i)) * vehicle.craterTime)).toFixed(2)
+            timeForVehicle['timeOrbit' + (i+1)] = ((orbit.distance / vehicle['maxSpeedOrbit' + (i+1)])
+                    + (countCraters(weatherNow, orbit.craters) * vehicle.craterTime)).toFixed(2)
         })
         return timeForVehicle
     })
